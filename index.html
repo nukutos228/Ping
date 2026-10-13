@@ -128,6 +128,81 @@ button:hover { background: #4268ef; }
 </style>
 </head>
 <body>
+.rail-btn {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: #9ba9c4;
+  border-radius: 14px;
+  font-size: 22px;
+}
+
+.rail-btn:hover,
+.rail-btn.active {
+  background: #263557;
+  color: #ffffff;
+}
+
+.chat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+}
+
+.chat-avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6585ff, #9365ed);
+  color: white;
+  font-weight: bold;
+  font-size: 17px;
+}
+
+.chat-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.chat-info strong,
+.chat-info .muted {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-info .muted {
+  margin-top: 5px;
+}
+
+.empty-messages {
+  margin: auto;
+  text-align: center;
+  padding: 24px;
+  color: #929db4;
+}
+
+.empty-messages .chat-avatar {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  font-size: 25px;
+}
+
+.message-date {
+  text-align: center;
+  color: #929db4;
+  font-size: 12px;
+  margin: 12px;
+}
 <div class="app" id="app">
   <nav class="rail">
     <button class="rail-btn active" id="messagesNav" title="Сообщения">▤</button>
