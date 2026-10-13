@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ping — Мессенджер</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #0d1018;
+  color: #edf2ff;
+  font-family: Arial, sans-serif;
+}
+.app {
+  display: grid;
+  grid-template-columns: 70px 270px 1fr;
+  height: 100vh;
+  min-height: 500px;
+}
+.rail {
+  background: #10141e;
+  border-right: 1px solid #2a3245;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 18px 10px;
+  gap: 20px;
+}
+.logo {
+  background: #6585ff;
+  border-radius: 15px;
+  padding: 12px;
+  font-size: 22px;
+  font-weight: bold;
+}
+.sidebar {
+  background: #121722;
+  padding: 20px 14px;
+  border-right: 1px solid #2a3245;
+}
+h1 { font-size: 23px; }
+input, button {
+  font: inherit;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px;
+}
+input {
+  background: #0d1018;
+  border: 1px solid #2a3245;
+  color: white;
+  width: 100%;
+  outline: none;
+}
+button {
+  background: #6585ff;
+  color: white;
+  cursor: pointer;
+}
+button:hover { background: #4268ef; }
+.new {
+  float: right;
+  font-size: 20px;
+  padding: 7px 13px;
+}
+.chat {
+  background: #1b2231;
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.chat:hover { background: #29344a; }
+.muted { color: #929db4; font-size: 13px; }
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.header {
+  padding: 20px;
+  border-bottom: 1px solid #2a3245;
+  background: #121722;
+}
+.messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+.bubble {
+  background: #1b2231;
+  border-radius: 15px;
+  padding: 12px 15px;
+  margin: 10px 0;
+  max-width: 80%;
+  overflow-wrap: anywhere;
+}
+.mine {
+  background: #4d6ee8;
+  margin-left: auto;
+}
+.composer {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  border-top: 1px solid #2a3245;
+}
+.composer input { flex: 1; min-width: 0; }
+.composer button { white-space: nowrap; }
+.welcome {
+  margin: auto;
+  text-align: center;
+  padding: 20px;
+}
+@media(max-width:650px) {
+  .app { grid-template-columns: 52px 1fr; }
+  .rail { padding: 12px 5px; }
+  .sidebar { padding: 12px 8px; }
+  .main { display: none; }
+  .app.open .sidebar { display: none; }
+  .app.open .main { display: flex; grid-column: 2; }
+  .sidebar h1 { font-size: 19px; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <nav class="rail">
+    <div class="logo">P</div>
+    <div title="Сообщения">▤</div>
+    <div title="Контакты">♙</div>
+    <div title="Настройки">⚙</div>
+  </nav>
+
+  <aside class="sidebar">
+    <button class="new" id="newChat">+</button>
+    <h1>Сообщения</h1>
+    <input id="search" placeholder="Поиск чатов">
+    <p class="muted">ТВОИ ЧАТЫ</p>
+    <div id="chatList"></div>
+    <p class="muted" style="margin-top:25px">PING · ТВОЙ МЕССЕНДЖЕР</p>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="welcome">
+      <div class="logo" style="display:inline-block">P</div>
+      <h2>Добро пожаловать в Ping!</h2>
+      <p class="muted">Выбери чат или создай новый.</p>
+      <button id="start">Создать чат</button>
+    </div>
+  </main>
+</div>
+
+<script>
+const app = document.getElementById("app");
+const chatList = document.getElementById("chatList");
+const main = document.getElementById("main");
+let chats = [];
+let active = null;
+
+function renderChats() {
+  const search = document.getElementById("search")
+    .value.toLowerCase();
+
+  chatList.innerHTML = "";
+
+  chats
+    .filter(c => c.name.toLowerCase().includes(search))
+    .forEach(chat => {
+      const item = document.createElement("div");
+      item.className = "chat";
+      item.innerHTML =
+        "<strong></strong><div class='muted'></div>";
+      item.querySelector("strong").textContent = chat.name;
+      item.querySelector(".muted").textContent =
+        chat.messages.length
+          ? chat.messages[chat.messages.length - 1].text
+          : "Начните переписку";
+
+      item.onclick = () => openChat(chat.id);
+      chatList.appendChild(item);
+    });
+}
+
+function createChat() {
+  const name = prompt("Как назвать чат или друга?");
+  if (!name || !name.trim()) return;
+
+  const chat = {
+    id: Date.now(),
+    name: name.trim(),
+    messages: []
+  };
+
+  chats.push(chat);
+  renderChats();
+  openChat(chat.id);
+}
+
+function openChat(id) {
+  active = chats.find(c => c.id === id);
+  if (!active) return;
+
+  app.classList.add("open");
+  main.innerHTML = `
+    <div class="header">
+      <button id="back" style="float:right">←</button>
+      <strong id="chatName"></strong>
+      <div class="muted">Личный чат</div>
+    </div>
+    <div class="messages" id="messages"></div>
+    <form class="composer" id="composer">
+      <input id="message" maxlength="2000"
+        placeholder="Написать сообщение…" autocomplete="off">
+      <button type="submit">Отправить</button>
+    </form>`;
+
+  document.getElementById("chatName").textContent = active.name;
+  document.getElementById("back").onclick = () => {
+    app.classList.remove("open");
+  };
+
+  document.getElementById("composer").onsubmit = event => {
+    event.preventDefault();
+    const input = document.getElementById("message");
+    const text = input.value.trim();
+    if (!text) return;
+
+    active.messages.push({ text });
+    input.value = "";
+    renderMessages();
+    renderChats();
+  };
+
+  renderMessages();
+}
+
+function renderMessages() {
+  const box = document.getElementById("messages");
+  if (!box || !active) return;
+
+  box.innerHTML = "";
+
+  active.messages.forEach(message => {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble mine";
+    bubble.textContent = message.text;
+    box.appendChild(bubble);
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
+document.getElementById("newChat").onclick = createChat;
+document.getElementById("start").onclick = createChat;
+document.getElementById("search").oninput = renderChats;
+</script>
+</body>
+</html>
